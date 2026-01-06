@@ -52,4 +52,4 @@ Thumbs.db
 *.local.yml
 
 # Multi-Git
-multi-git
+./multi-git
