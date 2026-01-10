@@ -10,7 +10,7 @@
 - **CLI 프레임워크**: `github.com/spf13/cobra` - 명령어 구조화 및 파싱
 - **Git 라이브러리**: `github.com/go-git/go-git/v5` - Git 작업 수행
 - **설정 파일**: `gopkg.in/yaml.v3` - YAML 설정 파일 파싱
-- **출력 포맷팅**: `github.com/fatih/color` - 터미널 색상 출력 (선택사항)
+- **출력 포맷팅**: 이모지(✓, ✗, ⚠️)를 사용한 시각적 구분
 - **병렬 처리**: Go의 `sync` 패키지 및 `goroutine` 활용
 
 ### 1.3 빌드 및 배포
@@ -25,7 +25,7 @@
 ```mermaid
 graph TB
     subgraph CLI["CLI Layer"]
-        Cobra["Cobra Commands<br/>(clone, checkout, tag, push)"]
+        Cobra["Cobra Commands<br/>(clone, checkout, tag, push, exec)"]
     end
     
     subgraph Command["Command Layer"]
@@ -69,20 +69,30 @@ multi-git/
 │   │   ├── clone.go            # clone 명령어
 │   │   ├── checkout.go         # checkout 명령어
 │   │   ├── tag.go              # tag 명령어
-│   │   └── push.go             # push 명령어
+│   │   ├── push.go             # push 명령어
+│   │   └── exec.go             # exec 명령어
 │   ├── repository/
 │   │   ├── manager.go          # 저장소 관리자
-│   │   └── repo.go             # 저장소 구조체
+│   │   ├── executor.go         # 작업 실행기
+│   │   ├── reporter.go         # 결과 리포트
+│   │   ├── result.go           # 결과 구조체
+│   │   └── errors.go           # Repository 관련 에러
 │   ├── git/
-│   │   ├── operations.go       # Git 작업 수행
-│   │   └── client.go           # Git 클라이언트 래퍼
+│   │   ├── client.go           # Git 클라이언트 래퍼
+│   │   ├── clone.go            # Clone 작업
+│   │   ├── checkout.go         # Checkout 작업
+│   │   ├── tag.go              # Tag 작업
+│   │   ├── push.go             # Push 작업
+│   │   ├── options.go          # 옵션 구조체
+│   │   ├── utils.go            # 유틸리티 함수
+│   │   └── errors.go           # Git 작업 관련 에러
+│   ├── shell/
+│   │   └── executor.go         # 셸 명령어 실행기
 │   └── config/
-│       ├── loader.go           # 설정 파일 로더
-│       ├── config.go           # 설정 구조체
-│       └── validator.go        # 설정 검증
-├── pkg/
-│   └── errors/
-│       └── errors.go           # 커스텀 에러 타입
+│       ├── loader.go          # 설정 파일 로더
+│       ├── config.go          # 설정 구조체
+│       ├── validator.go       # 설정 검증
+│       └── errors.go          # Config 관련 에러
 ├── configs/
 │   └── config.yaml.example    # 설정 파일 예시
 └── docs/
@@ -154,8 +164,8 @@ multi-git clone [flags]
    - 총 소요 시간
 
 **에러 처리:**
-- 네트워크 오류: 재시도 로직 (최대 3회)
-- 인증 오류: 명확한 에러 메시지
+- 네트워크 오류: 명확한 에러 메시지 (재시도 로직은 미구현)
+- 인증 오류: 명확한 에러 메시지 및 힌트 제공
 - 디스크 공간 부족: 조기 실패
 
 **출력 형식:**
@@ -260,7 +270,7 @@ multi-git tag --branch <branch> --name <tag-name> [flags]
 ```
 
 **Flags:**
-- `--branch, -b`: 태그를 생성할 브랜치 이름 (필수)
+- `--branch, -b`: 태그를 생성할 브랜치 이름 (생성 시 필수, 삭제 시 선택)
 - `--name, -n`: 태그 이름 (필수)
 - `--message, -m`: 태그 메시지
 - `--push, -p`: 태그를 원격에 푸시
@@ -334,22 +344,25 @@ multi-git push --branch <branch> --force [flags]
 ```
 
 **Flags:**
-- `--branch, -b`: 푸시할 브랜치 이름 (필수)
+- `--branch, -b`: 푸시할 브랜치 이름 (필수, `local:remote` 형식 지원)
 - `--force, -f`: 강제 push (필수, 안전장치)
 - `--remote, -r`: 원격 이름 (기본값: origin)
 - `--dry-run`: 실제 푸시 없이 시뮬레이션
+- `--yes, -y`: 확인 프롬프트 스킵
 
 **구현 로직:**
 1. **안전 확인:**
    - `--force` 플래그가 없으면 에러 반환
-   - 확인 프롬프트 표시 (대화형 모드)
+   - 확인 프롬프트 표시 (대화형 모드, `--yes`로 스킵 가능)
    - `--dry-run` 모드에서는 실제 푸시 안 함
 2. 설정 파일에서 저장소 목록 로드
-3. 각 저장소에 대해:
+3. 브랜치 이름 파싱 (`local:remote` 형식 지원)
+4. 각 저장소에 대해:
    - 저장소 디렉토리 존재 확인
-   - 현재 브랜치 확인 (지정된 브랜치인지)
-   - `git push --force origin <branch>` 실행
-4. 결과 집계 및 리포트
+   - 로컬 브랜치 존재 확인
+   - 현재 브랜치 확인 및 필요시 체크아웃
+   - `git push --force origin <local>:<remote>` 실행 (local:remote 형식 지원)
+5. 결과 집계 및 리포트
 
 **안전장치:**
 - `--force` 플래그 필수
@@ -358,9 +371,9 @@ multi-git push --branch <branch> --force [flags]
 - `--dry-run` 모드 제공
 
 **에러 처리:**
-- 브랜치가 없음: 명확한 에러 메시지
-- 원격 연결 실패: 네트워크 에러 구분
-- 권한 없음: 인증 에러 메시지
+- 브랜치가 없음: 명확한 에러 메시지 및 힌트 제공
+- 원격 연결 실패: 네트워크 에러 구분 및 힌트 제공 (재시도 로직은 미구현)
+- 권한 없음: 인증 에러 메시지 및 힌트 제공
 
 **출력 형식:**
 ```
@@ -392,6 +405,91 @@ type PushConfig struct {
 type PushResult struct {
     RepoName string
     Success  bool
+    Error    error
+}
+```
+
+### 3.5 명령어 일괄 실행 기능 (Exec)
+
+#### 3.5.1 기능 개요
+관리되는 모든 저장소에서 동일한 셸 명령어/스크립트를 실행
+
+#### 3.5.2 구현 상세
+
+**명령어 구조:**
+```bash
+multi-git exec <command> [flags]
+```
+
+**Flags:**
+- `--parallel, -p`: 병렬 처리 수 (기본값: config 설정값)
+- `--fail-fast`: 하나라도 실패하면 중단
+- `--shell, -s`: 사용할 셸 (기본값: /bin/sh)
+- `--dry-run`: 실제 실행 없이 시뮬레이션
+- `--show-output, -o`: 명령어 출력 표시 (기본값: true)
+
+**구현 로직:**
+1. 설정 파일에서 저장소 목록 로드
+2. 각 저장소에 대해:
+   - 저장소 디렉토리 존재 확인
+   - 해당 디렉토리에서 셸 명령어 실행
+   - stdout/stderr 캡처
+   - 결과 저장
+3. 결과 집계 및 리포트
+
+**에러 처리:**
+- 명령어 실행 실패: 에러 코드 및 stderr 출력
+- 타임아웃: 기본 5분, 설정 가능
+- 저장소 미존재: 명확한 에러 메시지
+
+**출력 형식:**
+
+기본 출력 (--show-output=true):
+```
+Executing 'npm install' across 3 repositories...
+
+=== repo1 ===
+added 100 packages in 5.2s
+  ✓ repo1 (5.20s)
+
+=== repo2 ===
+added 200 packages in 8.1s
+  ✓ repo2 (8.10s)
+
+Summary:
+  Success: 2
+  Failed: 0
+  Total time: 8.10s
+```
+
+간단한 출력 (--show-output=false):
+```
+Executing 'npm install' across 3 repositories...
+  ✓ repo1: executed successfully (5.20s)
+  ✓ repo2: executed successfully (8.10s)
+
+Summary:
+  Success: 2
+  Failed: 0
+  Total time: 8.10s
+```
+
+#### 3.5.3 데이터 구조
+
+```go
+type ExecConfig struct {
+    Command    string
+    Shell      string
+    Parallel   int
+    FailFast   bool
+    DryRun     bool
+    ShowOutput bool
+}
+
+type ExecResult struct {
+    RepoName string
+    Success  bool
+    Output   string
     Error    error
 }
 ```
@@ -435,32 +533,20 @@ repositories:
 
 ### 5.1 에러 타입
 
-```go
-type MultiGitError struct {
-    Type    ErrorType
-    Message string
-    Repo    string
-    Cause   error
-}
+에러 타입은 각 패키지별로 분산되어 있으며, 표준 Go `error` 인터페이스를 사용합니다:
+- `internal/config/errors.go`: Config 관련 에러
+- `internal/git/errors.go`: Git 작업 관련 에러
+- `internal/repository/errors.go`: Repository 관련 에러
 
-type ErrorType string
-
-const (
-    ErrRepoNotFound    ErrorType = "REPO_NOT_FOUND"
-    ErrBranchNotFound  ErrorType = "BRANCH_NOT_FOUND"
-    ErrTagExists       ErrorType = "TAG_EXISTS"
-    ErrAuthFailed      ErrorType = "AUTH_FAILED"
-    ErrNetworkError    ErrorType = "NETWORK_ERROR"
-    ErrLocalChanges    ErrorType = "LOCAL_CHANGES"
-)
-```
+에러 메시지에는 `hint:` 접두사를 추가하여 사용자 안내를 제공합니다.
 
 ### 5.2 에러 처리 원칙
 
 1. **부분 실패 허용**: 일부 저장소 실패해도 나머지 계속 진행
 2. **명확한 에러 메시지**: 사용자가 문제를 이해하고 해결할 수 있도록
 3. **에러 집계**: 모든 에러를 수집하여 마지막에 리포트
-4. **재시도 로직**: 네트워크 에러에 대해 지수 백오프 재시도
+4. **힌트 제공**: 에러 메시지에 `hint:` 접두사로 해결 방법 제시
+5. **재시도 로직**: 현재 미구현 (향후 추가 예정)
 
 ## 6. 성능 최적화
 
