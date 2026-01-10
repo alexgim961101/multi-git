@@ -94,6 +94,27 @@ func (r *Reporter) PrintFullReport(summary *Summary) {
 	}
 }
 
+// PrintFullReportWithOutput prints results with detailed output for exec command
+func (r *Reporter) PrintFullReportWithOutput(summary *Summary) {
+	for _, result := range summary.Results {
+		fmt.Fprintf(r.out, "\n=== %s ===\n", result.RepoName)
+		if result.Message != "" {
+			fmt.Fprintln(r.out, result.Message)
+		}
+		if result.Success {
+			fmt.Fprintf(r.out, "  ✓ %s (%.2fs)\n", result.RepoName, result.Duration.Seconds())
+		} else {
+			fmt.Fprintf(r.out, "  ✗ %s (%.2fs)\n", result.RepoName, result.Duration.Seconds())
+			if result.Error != nil {
+				fmt.Fprintf(r.out, "    Error: %v\n", result.Error)
+			}
+		}
+	}
+
+	// Print summary
+	r.PrintSummary(summary)
+}
+
 // PrintProgress prints progress information (for real-time updates)
 func (r *Reporter) PrintProgress(current, total int, repoName string) {
 	fmt.Fprintf(r.out, "[%d/%d] Processing %s...\n", current, total, repoName)
@@ -118,4 +139,3 @@ func (r *Reporter) PrintWarning(message string) {
 func (r *Reporter) PrintSeparator() {
 	fmt.Fprintln(r.out, strings.Repeat("-", 40))
 }
-
