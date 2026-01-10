@@ -31,11 +31,12 @@ type TagOptions struct {
 
 // PushOptions represents options for pushing to remote
 type PushOptions struct {
-	Branch  string        // 푸시할 브랜치 이름
-	Remote  string        // 원격 이름 (기본: origin)
-	Force   bool          // 강제 푸시
-	DryRun  bool          // 시뮬레이션만 (실제 푸시 안 함)
-	Timeout time.Duration // 타임아웃 (0 = 기본값)
+	Branch       string        // 푸시할 로컬 브랜치 이름
+	RemoteBranch string        // 원격 브랜치 이름 (없으면 Branch와 동일)
+	Remote       string        // 원격 이름 (기본: origin)
+	Force        bool          // 강제 푸시
+	DryRun       bool          // 시뮬레이션만 (실제 푸시 안 함)
+	Timeout      time.Duration // 타임아웃 (0 = 기본값)
 }
 
 // AuthOptions represents authentication options

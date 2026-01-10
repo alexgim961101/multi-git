@@ -53,14 +53,22 @@ func (c *Client) Push(opts *PushOptions) error {
 	}
 
 	// Create refspec
-	branchRef := plumbing.NewBranchReferenceName(branchName)
+	localBranchRef := plumbing.NewBranchReferenceName(branchName)
+	
+	// Determine remote branch name
+	remoteBranchName := opts.RemoteBranch
+	if remoteBranchName == "" {
+		remoteBranchName = branchName // Default to same name
+	}
+	remoteBranchRef := plumbing.NewBranchReferenceName(remoteBranchName)
+	
 	var refSpec config.RefSpec
-
 	if opts.Force {
-		// Force push
-		refSpec = config.RefSpec(fmt.Sprintf("+%s:%s", branchRef, branchRef))
+		// Force push: +refs/heads/local:refs/heads/remote
+		refSpec = config.RefSpec(fmt.Sprintf("+%s:%s", localBranchRef, remoteBranchRef))
 	} else {
-		refSpec = config.RefSpec(fmt.Sprintf("%s:%s", branchRef, branchRef))
+		// Normal push: refs/heads/local:refs/heads/remote
+		refSpec = config.RefSpec(fmt.Sprintf("%s:%s", localBranchRef, remoteBranchRef))
 	}
 
 	// Execute push
