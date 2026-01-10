@@ -44,6 +44,63 @@ go build -o multi-git cmd/multi-git/main.go
 sudo mv multi-git /usr/local/bin/
 ```
 
+### Installation Script (Recommended)
+
+The easiest way to install multi-git is using the installation script:
+
+```bash
+# Clone the repository
+git clone https://github.com/lotto/multi-git.git
+cd multi-git
+
+# Install to /usr/local/bin (requires sudo)
+./scripts/install.sh
+
+# Or install to user directory (no sudo required)
+./scripts/install.sh --user
+
+# Or install to custom path
+./scripts/install.sh --prefix=/opt/bin
+```
+
+**Installation Options:**
+- Default (`./scripts/install.sh`): Installs to `/usr/local/bin` (requires sudo)
+- `--user`: Installs to `~/.local/bin` (no sudo required)
+- `--prefix=PATH`: Installs to custom path
+
+**Note:** If you use `--user` option, make sure `~/.local/bin` is in your PATH. Add this to your `~/.bashrc` or `~/.zshrc`:
+
+```bash
+export PATH="$PATH:$HOME/.local/bin"
+```
+
+**Verify Installation:**
+
+```bash
+multi-git --version
+```
+
+### Uninstall
+
+To uninstall multi-git:
+
+```bash
+# Uninstall from default location (/usr/local/bin)
+./scripts/uninstall.sh
+
+# Uninstall from user directory (~/.local/bin)
+./scripts/uninstall.sh --user
+
+# Uninstall and remove configuration files
+./scripts/uninstall.sh --all
+```
+
+**Uninstall Options:**
+- Default (`./scripts/uninstall.sh`): Removes binary from `/usr/local/bin`
+- `--user`: Removes binary from `~/.local/bin`
+- `--all`: Also removes configuration files from `~/.multi-git/`
+- `--prefix=PATH`: Removes binary from custom path
+
 ### Binary Download (Coming Soon)
 
 You can download binaries for your operating system from the releases page.
