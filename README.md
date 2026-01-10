@@ -13,6 +13,7 @@ A CLI tool for efficiently managing multiple Git repositories. Helps DevOps engi
 - [Contributing](#contributing)
 - [License](#license)
 
+<a id="features"></a>
 ## ✨ Features
 
 - **Batch Repository Cloning**: Clone multiple Git repositories at once
@@ -21,6 +22,7 @@ A CLI tool for efficiently managing multiple Git repositories. Helps DevOps engi
 - **Force Push**: Support for force push to resolve branch conflicts during release deployment
 - **Command Execution**: Execute the same shell commands/scripts across all repositories
 
+<a id="installation"></a>
 ## 🚀 Installation
 
 ### Requirements
@@ -46,6 +48,7 @@ sudo mv multi-git /usr/local/bin/
 
 You can download binaries for your operating system from the releases page.
 
+<a id="quick-start"></a>
 ## 🏃 Quick Start
 
 1. **Create Configuration File**
@@ -79,6 +82,7 @@ multi-git clone
 multi-git checkout release/v1.0.0
 ```
 
+<a id="configuration"></a>
 ## ⚙️ Configuration
 
 The configuration file is located at `~/.multi-git/config.yaml` by default. You can specify a different path using the `--config` flag.
@@ -106,6 +110,7 @@ repositories:
 - HTTPS: `https://github.com/org/repo.git`
 - SSH: `git@github.com:org/repo.git`
 
+<a id="usage"></a>
 ## 📖 Usage
 
 ### `clone` - Clone Repositories
@@ -256,6 +261,7 @@ multi-git exec "rm -rf node_modules" --dry-run
 multi-git exec "npm install" --show-output=false
 ```
 
+<a id="examples"></a>
 ## 💡 Examples
 
 ### Scenario 1: Release Preparation
@@ -346,6 +352,7 @@ go build -o multi-git cmd/multi-git/main.go
 go test ./...
 ```
 
+<a id="contributing"></a>
 ## 🤝 Contributing
 
 Contributions are welcome! Please create an issue or submit a Pull Request.
@@ -356,6 +363,7 @@ Contributions are welcome! Please create an issue or submit a Pull Request.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+<a id="license"></a>
 ## 📝 License
 
 This project is licensed under the MIT License.
