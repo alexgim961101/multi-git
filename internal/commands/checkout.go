@@ -151,9 +151,9 @@ func runCheckout(cmd *cobra.Command, args []string) {
 	if workers > 1 {
 		// 임시로 ParallelWorkers 설정을 위해 config 수정
 		cfg.ParallelWorkers = workers
-		summary = mgr.ExecuteParallel(ctx, checkoutTask)
+		summary = mgr.ExecuteParallel(ctx, checkoutTask, nil)
 	} else {
-		summary = mgr.ExecuteSequential(ctx, checkoutTask)
+		summary = mgr.ExecuteSequential(ctx, checkoutTask, nil)
 	}
 
 	// 8. 결과 출력

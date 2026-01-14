@@ -191,9 +191,9 @@ func runTagCreate(ctx context.Context, mgr *repository.Manager, reporter *reposi
 
 	// 실행
 	if workers > 1 {
-		return mgr.ExecuteParallel(ctx, tagCreateTask)
+		return mgr.ExecuteParallel(ctx, tagCreateTask, nil)
 	}
-	return mgr.ExecuteSequential(ctx, tagCreateTask)
+	return mgr.ExecuteSequential(ctx, tagCreateTask, nil)
 }
 
 // runTagDelete handles tag deletion across repositories
@@ -261,9 +261,9 @@ func runTagDelete(ctx context.Context, mgr *repository.Manager, reporter *reposi
 
 	// 실행
 	if workers > 1 {
-		return mgr.ExecuteParallel(ctx, tagDeleteTask)
+		return mgr.ExecuteParallel(ctx, tagDeleteTask, nil)
 	}
-	return mgr.ExecuteSequential(ctx, tagDeleteTask)
+	return mgr.ExecuteSequential(ctx, tagDeleteTask, nil)
 }
 
 func GetTagCmd() *cobra.Command {

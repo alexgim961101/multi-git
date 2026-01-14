@@ -199,9 +199,9 @@ func runPush(cmd *cobra.Command, args []string) {
 	var summary *repository.Summary
 
 	if workers > 1 {
-		summary = mgr.ExecuteParallel(ctx, pushTask)
+		summary = mgr.ExecuteParallel(ctx, pushTask, nil)
 	} else {
-		summary = mgr.ExecuteSequential(ctx, pushTask)
+		summary = mgr.ExecuteSequential(ctx, pushTask, nil)
 	}
 
 	// 10. 결과 출력

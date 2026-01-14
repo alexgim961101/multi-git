@@ -9,6 +9,7 @@ import (
 	"github.com/alexgim961101/multi-git/internal/config"
 	"github.com/alexgim961101/multi-git/internal/git"
 	"github.com/alexgim961101/multi-git/internal/repository"
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 )
 
@@ -112,9 +113,16 @@ func runClone(cmd *cobra.Command, args []string) {
 	if workers > 1 {
 		// 임시로 ParallelWorkers 설정을 위해 config 수정
 		cfg.ParallelWorkers = workers
-		summary = mgr.ExecuteParallel(ctx, cloneTask)
+
+		bar := progressbar.Default(int64(len(cfg.Repositories)), "Cloning...")
+		summary = mgr.ExecuteParallel(ctx, cloneTask, func() {
+			_ = bar.Add(1)
+		})
 	} else {
-		summary = mgr.ExecuteSequential(ctx, cloneTask)
+		bar := progressbar.Default(int64(len(cfg.Repositories)), "Cloning...")
+		summary = mgr.ExecuteSequential(ctx, cloneTask, func() {
+			_ = bar.Add(1)
+		})
 	}
 
 	// 7. 결과 출력

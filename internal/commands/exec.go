@@ -178,9 +178,9 @@ func runExec(cmd *cobra.Command, args []string) {
 	var summary *repository.Summary
 
 	if workers > 1 {
-		summary = mgr.ExecuteParallel(ctx, execTask)
+		summary = mgr.ExecuteParallel(ctx, execTask, nil)
 	} else {
-		summary = mgr.ExecuteSequential(ctx, execTask)
+		summary = mgr.ExecuteSequential(ctx, execTask, nil)
 	}
 
 	// 10. 결과 출력

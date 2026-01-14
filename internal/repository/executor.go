@@ -14,15 +14,15 @@ type TaskFunc func(repo config.Repository) Result
 
 // Execute runs the task on all repositories
 // It automatically chooses parallel or sequential execution based on ParallelWorkers config
-func (m *Manager) Execute(ctx context.Context, task TaskFunc) *Summary {
+func (m *Manager) Execute(ctx context.Context, task TaskFunc, onProgress func()) *Summary {
 	if m.ParallelWorkers() > 1 {
-		return m.ExecuteParallel(ctx, task)
+		return m.ExecuteParallel(ctx, task, onProgress)
 	}
-	return m.ExecuteSequential(ctx, task)
+	return m.ExecuteSequential(ctx, task, onProgress)
 }
 
 // ExecuteSequential runs the task on all repositories sequentially
-func (m *Manager) ExecuteSequential(ctx context.Context, task TaskFunc) *Summary {
+func (m *Manager) ExecuteSequential(ctx context.Context, task TaskFunc, onProgress func()) *Summary {
 	startTime := time.Now()
 	results := make([]Result, 0, len(m.config.Repositories))
 
@@ -35,6 +35,10 @@ func (m *Manager) ExecuteSequential(ctx context.Context, task TaskFunc) *Summary
 
 		result := task(repo)
 		results = append(results, result)
+
+		if onProgress != nil {
+			onProgress()
+		}
 	}
 
 	return NewSummary(results, time.Since(startTime))
@@ -42,7 +46,7 @@ func (m *Manager) ExecuteSequential(ctx context.Context, task TaskFunc) *Summary
 
 // ExecuteParallel runs the task on all repositories in parallel
 // The number of concurrent workers is determined by ParallelWorkers config
-func (m *Manager) ExecuteParallel(ctx context.Context, task TaskFunc) *Summary {
+func (m *Manager) ExecuteParallel(ctx context.Context, task TaskFunc, onProgress func()) *Summary {
 	startTime := time.Now()
 	repos := m.config.Repositories
 	numRepos := len(repos)
@@ -82,6 +86,10 @@ func (m *Manager) ExecuteParallel(ctx context.Context, task TaskFunc) *Summary {
 
 				result := task(repo)
 				resultsChan <- result
+
+				if onProgress != nil {
+					onProgress()
+				}
 			}
 		}()
 	}
