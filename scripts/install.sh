@@ -194,11 +194,7 @@ echo "========================================="
 echo "  설치 완료!"
 echo "========================================="
 echo ""
-echo "사용 방법:"
-echo "  $BINARY_NAME --help          # 도움말"
-echo "  $BINARY_NAME clone           # 저장소 클론"
-echo "  $BINARY_NAME checkout <branch>  # 브랜치 변경"
-echo ""
+
 echo "설정 파일: $CONFIG_FILE"
 echo ""
 
