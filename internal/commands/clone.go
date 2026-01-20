@@ -110,19 +110,29 @@ func runClone(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
 	var summary *repository.Summary
 
+	// Progress Bar 설정 (it/s 제거)
+	bar := progressbar.NewOptions64(
+		int64(len(cfg.Repositories)),
+		progressbar.OptionSetDescription("Cloning..."),
+		progressbar.OptionSetWriter(os.Stderr),
+		progressbar.OptionShowCount(),
+		progressbar.OptionSetWidth(10),
+		progressbar.OptionThrottle(65*time.Millisecond),
+		progressbar.OptionSpinnerType(14),
+		progressbar.OptionFullWidth(),
+		// progressbar.OptionShowIts(), // 이 옵션을 제거하여 속도 표시 숨김
+	)
+
+	onProgress := func() {
+		_ = bar.Add(1)
+	}
+
 	if workers > 1 {
 		// 임시로 ParallelWorkers 설정을 위해 config 수정
 		cfg.ParallelWorkers = workers
-
-		bar := progressbar.Default(int64(len(cfg.Repositories)), "Cloning...")
-		summary = mgr.ExecuteParallel(ctx, cloneTask, func() {
-			_ = bar.Add(1)
-		})
+		summary = mgr.ExecuteParallel(ctx, cloneTask, onProgress)
 	} else {
-		bar := progressbar.Default(int64(len(cfg.Repositories)), "Cloning...")
-		summary = mgr.ExecuteSequential(ctx, cloneTask, func() {
-			_ = bar.Add(1)
-		})
+		summary = mgr.ExecuteSequential(ctx, cloneTask, onProgress)
 	}
 
 	// 7. 결과 출력
