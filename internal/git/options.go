@@ -45,3 +45,11 @@ type AuthOptions struct {
 	Password string // 비밀번호 또는 토큰 (HTTPS용)
 	// SSH 키는 시스템 기본값 사용
 }
+
+// PullOptions represents options for pulling from remote
+type PullOptions struct {
+	Remote     string // 원격 이름 (기본: origin)
+	Branch     string // 풀할 브랜치 이름 (비어있으면 현재 브랜치)
+	Force      bool   // 강제 풀 (로컬 변경사항 무시)
+	FetchFirst bool   // fetch 먼저 수행
+}

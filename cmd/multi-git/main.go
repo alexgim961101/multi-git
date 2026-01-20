@@ -42,6 +42,7 @@ func init() {
 	rootCmd.AddCommand(commands.GetCheckoutCmd())
 	rootCmd.AddCommand(commands.GetTagCmd())
 	rootCmd.AddCommand(commands.GetPushCmd())
+	rootCmd.AddCommand(commands.GetPullCmd())
 	rootCmd.AddCommand(commands.GetExecCmd())
 }
 

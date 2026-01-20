@@ -14,15 +14,18 @@ A CLI tool for efficiently managing multiple Git repositories. Helps DevOps engi
 - [License](#license)
 
 <a id="features"></a>
+
 ## ✨ Features
 
 - **Batch Repository Cloning**: Clone multiple Git repositories at once
 - **Batch Branch Checkout**: Checkout the same branch across all managed repositories simultaneously
+- **Batch Repository Pull**: Pull latest changes from remote across all repositories
 - **Tag Management**: Create and push tags to specific branches across multiple repositories simultaneously
 - **Force Push**: Support for force push to resolve branch conflicts during release deployment
 - **Command Execution**: Execute the same shell commands/scripts across all repositories
 
 <a id="installation"></a>
+
 ## 🚀 Installation
 
 ### Requirements
@@ -64,6 +67,7 @@ cd multi-git
 ```
 
 **Installation Options:**
+
 - Default (`./scripts/install.sh`): Installs to `/usr/local/bin` (requires sudo)
 - `--user`: Installs to `~/.local/bin` (no sudo required)
 - `--prefix=PATH`: Installs to custom path
@@ -96,6 +100,7 @@ To uninstall multi-git:
 ```
 
 **Uninstall Options:**
+
 - Default (`./scripts/uninstall.sh`): Removes binary from `/usr/local/bin`
 - `--user`: Removes binary from `~/.local/bin`
 - `--all`: Also removes configuration files from `~/.multi-git/`
@@ -106,6 +111,7 @@ To uninstall multi-git:
 You can download binaries for your operating system from the releases page.
 
 <a id="quick-start"></a>
+
 ## 🏃 Quick Start
 
 1. **Create Configuration File**
@@ -121,7 +127,7 @@ config:
 repositories:
   - name: backend-service
     url: https://github.com/org/backend-service.git
-  
+
   - name: frontend-app
     url: https://github.com/org/frontend-app.git
 EOF
@@ -140,6 +146,7 @@ multi-git checkout release/v1.0.0
 ```
 
 <a id="configuration"></a>
+
 ## ⚙️ Configuration
 
 The configuration file is located at `~/.multi-git/config.yaml` by default. You can specify a different path using the `--config` flag.
@@ -148,15 +155,15 @@ The configuration file is located at `~/.multi-git/config.yaml` by default. You 
 
 ```yaml
 config:
-  base_dir: ~/repositories      # Base directory for cloning repositories
-  default_remote: origin         # Default remote name
-  parallel_workers: 3            # Number of parallel operations
+  base_dir: ~/repositories # Base directory for cloning repositories
+  default_remote: origin # Default remote name
+  parallel_workers: 3 # Number of parallel operations
 
 repositories:
-  - name: backend-service        # Repository name
-    url: https://github.com/org/backend-service.git  # Repository URL
-    path: backend                # Optional path override
-  
+  - name: backend-service # Repository name
+    url: https://github.com/org/backend-service.git # Repository URL
+    path: backend # Optional path override
+
   - name: frontend-app
     url: https://github.com/org/frontend-app.git
     # If path is not specified, name is used
@@ -168,6 +175,7 @@ repositories:
 - SSH: `git@github.com:org/repo.git`
 
 <a id="usage"></a>
+
 ## 📖 Usage
 
 ### `clone` - Clone Repositories
@@ -179,12 +187,14 @@ multi-git clone [flags]
 ```
 
 **Flags:**
+
 - `--config, -c`: Configuration file path (default: `~/.multi-git/config.yaml`)
 - `--skip-existing`: Skip repositories that already exist (default: `true`)
 - `--parallel, -p`: Number of parallel clones (default: `3`)
 - `--depth`: Shallow clone depth (optional)
 
 **Examples:**
+
 ```bash
 # Basic clone
 multi-git clone
@@ -205,11 +215,13 @@ multi-git checkout <branch-name> [flags]
 ```
 
 **Flags:**
+
 - `--create, -c`: Create branch if it doesn't exist
 - `--force, -f`: Force checkout, discarding local changes
 - `--fetch`: Fetch from remote before checkout
 
 **Examples:**
+
 ```bash
 # Checkout branch
 multi-git checkout release/v1.0.0
@@ -221,6 +233,33 @@ multi-git checkout feature/new-feature --create
 multi-git checkout release/v1.0.0 --fetch
 ```
 
+### `pull` - Pull Repositories
+
+Pull latest changes from remote across all managed repositories.
+
+```bash
+multi-git pull [flags]
+```
+
+**Flags:**
+
+- `--remote, -r`: Remote name to pull from (default: `origin`)
+- `--force, -f`: Force pull, discarding local changes
+- `--parallel, -p`: Number of parallel operations (default: config value)
+
+**Examples:**
+
+```bash
+# Pull all repositories
+multi-git pull
+
+# Pull from specific remote
+multi-git pull --remote upstream
+
+# Force pull (discard local changes)
+multi-git pull --force
+```
+
 ### `tag` - Tag Management
 
 Create and push tags to specific branches across multiple repositories simultaneously.
@@ -230,6 +269,7 @@ multi-git tag --branch <branch> --name <tag-name> [flags]
 ```
 
 **Flags:**
+
 - `--branch, -b`: Branch name to create tag on (required for creation, optional for deletion)
 - `--name, -n`: Tag name (required)
 - `--message, -m`: Tag message
@@ -238,6 +278,7 @@ multi-git tag --branch <branch> --name <tag-name> [flags]
 - `--delete, -d`: Delete tag
 
 **Examples:**
+
 ```bash
 # Create a tag
 multi-git tag --branch release/v1.0.0 --name v1.0.0
@@ -258,6 +299,7 @@ multi-git push --branch <branch> --force [flags]
 ```
 
 **Flags:**
+
 - `--branch, -b`: Branch name to push (required, supports `local:remote` format)
 - `--force, -f`: Force push (required)
 - `--remote, -r`: Remote name (default: `origin`)
@@ -265,6 +307,7 @@ multi-git push --branch <branch> --force [flags]
 - `--yes, -y`: Skip confirmation prompt
 
 **Examples:**
+
 ```bash
 # Force push (with confirmation prompt)
 multi-git push --branch release/v1.0.0 --force
@@ -288,6 +331,7 @@ multi-git exec <command> [flags]
 ```
 
 **Flags:**
+
 - `--parallel, -p`: Number of parallel operations (default: config value, 0=sequential)
 - `--fail-fast`: Stop on first failure
 - `--shell, -s`: Shell to use (default: `/bin/sh`)
@@ -295,6 +339,7 @@ multi-git exec <command> [flags]
 - `--show-output, -o`: Show command output (default: `true`)
 
 **Examples:**
+
 ```bash
 # Run npm install in all repositories
 multi-git exec "npm install"
@@ -319,6 +364,7 @@ multi-git exec "npm install" --show-output=false
 ```
 
 <a id="examples"></a>
+
 ## 💡 Examples
 
 ### Scenario 1: Release Preparation
@@ -410,6 +456,7 @@ go test ./...
 ```
 
 <a id="contributing"></a>
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please create an issue or submit a Pull Request.
@@ -421,6 +468,7 @@ Contributions are welcome! Please create an issue or submit a Pull Request.
 5. Open a Pull Request
 
 <a id="license"></a>
+
 ## 📝 License
 
 This project is licensed under the MIT License.
